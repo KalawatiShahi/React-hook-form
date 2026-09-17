@@ -1,48 +1,95 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 const schemaForm = z.object({
-  name: z.string().min(8, "Name must be at least 8 characters").max(20),
-  age: z.coerce.number().min(18, "You must be at least 18 years old").max(80),
-  password: z.string().min(6, "Password must be at least 6 characters").max(20)
+  name: z
+    .string()
+    .min(8, "Name must be at least 8 characters")
+    .max(20, "Name cannot exceed 20 characters"),
+
+  email: z
+    .string()
+    .email("Please enter a valid email"),
+
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters"),
 });
 
-const Form = () => {
-  const {register, handleSubmit, formState: { errors } } = useForm({
-    resolver: zodResolver(schemaForm)
+type FormData = z.infer<typeof schemaForm>;
+
+const ZodForm = () => {
+  const [submittedData, setSubmittedData] = useState<FormData | null>(null);
+
+  const {
+    register, handleSubmit, formState: { errors },} = useForm<FormData>({
+    resolver: zodResolver(schemaForm),
   });
 
-  const onSubmit = (data) => {
+  const onSubmit = (data: FormData) => {
     console.log(data);
+    setSubmittedData(data);
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <div>
-        <label htmlFor="name">Name:
-        <input type="text" id="first" autoComplete="off" {...register("name")} />
-        <p style={{ color: "red" }}>{errors.name?.message}</p>
-        </label>
-      </div>
+    <>
+      <form onSubmit={handleSubmit(onSubmit)}>
 
-      <div>
-        <label htmlFor="age">Age:
-        <input type="number" id="second" autoComplete="off" {...register("age")} />
-        <p style={{ color: "red" }}>{errors.age?.message}</p>
-        </label>
-      </div>
+        {/* Name */}
+        <div>
+          <label htmlFor="name">Name:</label>
 
-      <div>
-        <label htmlFor="password">Password:
-        <input type="text" id="first" autoComplete="off" {...register("password")} />
-        <p style={{ color: "red" }}>{errors.password?.message}</p>
-        </label>
-      </div>
+          <input id="name" type="text" autoComplete="off" {...register("name")}/>
 
-      <button type="submit">Submit</button>
-    </form>
+          <p>{errors.name?.message}</p>
+        </div>
+
+        {/* Email */}
+        <div>
+          <label htmlFor="email">Email:</label>
+
+          <input id="email" type="email" autoComplete="off"{...register("email")}/>
+
+          <p>{errors.email?.message}</p>
+        </div>
+
+        {/* Password */}
+        <div>
+          <label htmlFor="password">Password:</label>
+
+          <input id="password" type="password" autoComplete="off" {...register("password")} />
+
+          <p>{errors.password?.message}</p>
+        </div>
+
+        <button type="submit">
+          Submit
+        </button>
+
+      </form>
+
+      {/* Submitted Data */}
+      {submittedData && (
+        <div style={{ marginTop: "20px" }}>
+          <h2>Submitted Data</h2>
+
+          <p>
+            <strong>Name:</strong> {submittedData.name}
+          </p>
+
+          <p>
+            <strong>Email:</strong> {submittedData.email}
+          </p>
+
+          <p>
+            <strong>Password:</strong> {submittedData.password}
+          </p>
+        </div>
+      )}
+    </>
   );
 };
 
-export default Form;
+export default ZodForm;
